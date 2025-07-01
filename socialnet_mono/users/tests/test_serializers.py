@@ -1,3 +1,11 @@
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "socialnet_mono.settings_test")
+django.setup()
+from django.core.management import call_command
+call_command("migrate", verbosity=0)
+
 from users.serializers import UserSerializer
 from users.models import User
 
