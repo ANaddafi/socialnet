@@ -136,7 +136,10 @@ SIMPLE_JWT = {
 
 # Internationalization, Timezone
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "Iran/Tehran"
+# The correct IANA identifier for Tehran's timezone is "Asia/Tehran".
+# Using the wrong value would raise an UnknownTimeZone error when Django
+# tries to load the timezone.
+TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
