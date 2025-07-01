@@ -30,7 +30,7 @@ services:
 
   backend:
     build: .
-    command: gunicorn socialnet.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn socialnet_mono.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - .:/app
     environment:
