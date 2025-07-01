@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: socialnet
+      POSTGRES_USER: socialuser
+      POSTGRES_PASSWORD: socialpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  backend:
+    build: .
+    command: gunicorn socialnet.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=*
+      - POSTGRES_DB=socialnet
+      - POSTGRES_USER=socialuser
+      - POSTGRES_PASSWORD=socialpass
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+    depends_on:
+      - db
+      - redis
+      - minio
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
+  minio_data:
