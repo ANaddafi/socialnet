@@ -8,11 +8,18 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = [
-            'id', 'author', 'author_username', 'content',
-            'created_at', 'updated_at',
+            'id',
+            'author',
+            'author_username',
+            'content',
+            'created_at',
+            'updated_at',
+            'parent',
+            'repost_of',
             'likes_count', 'comments_count', 'reposts_count', 'shares_count'
         ]
         read_only_fields = ['author', 'created_at', 'updated_at',
+                            'parent', 'repost_of',
                             'likes_count', 'comments_count', 'reposts_count', 'shares_count']
 
 
@@ -20,3 +27,4 @@ class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['content']
+        extra_kwargs = {"content": {"required": False}}

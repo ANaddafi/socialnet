@@ -1,3 +1,11 @@
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "socialnet_mono.settings_test")
+django.setup()
+from django.core.management import call_command
+call_command("migrate", verbosity=0)
+
 import tempfile
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -5,8 +13,9 @@ from users.models import User
 import pytest
 
 
-@pytest.mark.django_db
 def test_register_login_and_profile_flow():
+    from django.core.management import call_command
+    call_command("flush", verbosity=0, interactive=False)
     client = APIClient()
 
     # Register user
