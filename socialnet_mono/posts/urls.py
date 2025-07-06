@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     PostCreateView, PostEditView, PostDeleteView, ProfilePostsView, PostDetailView,
     CommentCreateView, LikePostView, UnlikePostView, RepostView,
-    BookmarkView, UnbookmarkView, BookmarkedPostsView,
+    BookmarkView, UnbookmarkView, BookmarkedPostsView, FeedView,
 )
 
 
@@ -19,4 +19,5 @@ urlpatterns = [
     path('bookmark/', BookmarkView.as_view(), name='post_bookmark'),
     path('unbookmark/<int:post_id>/', UnbookmarkView.as_view(), name='post_unbookmark'),
     path('bookmarked/', BookmarkedPostsView.as_view(), name='bookmarked_posts'),
+    path('feed/', FeedView.as_view(), name='feed'),
 ]

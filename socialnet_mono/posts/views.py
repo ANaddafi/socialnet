@@ -138,3 +138,15 @@ class BookmarkedPostsView(generics.ListAPIView):
 
     def get_queryset(self):
         return Post.objects.filter(bookmarks__user=self.request.user).order_by('-created_at')
+
+
+class FeedView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        following_ids = self.request.user.following_set.values_list('target_id', flat=True)
+        return Post.objects.filter(
+            author_id__in=list(following_ids) + [self.request.user.id],
+            parent=None,  # swap out comments
+        ).order_by('-created_at')
