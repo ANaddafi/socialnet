@@ -1,2 +1,2 @@
-async def handler(event):
+def handler(event, context=None):
     return ""

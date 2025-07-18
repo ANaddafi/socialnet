@@ -39,7 +39,8 @@ async def call_function(func_name: str, request: Request):
 
         handler = getattr(module, "handler")
         data = await request.json()
-        result = await handler(data)  # if callable(getattr(handler, "__await__", None)) else handler(data)
+        # result = await handler(data) if callable(getattr(handler, "__await__", None)) else handler(data)
+        result = handler(data)
 
         logging.info(f"Function {func_name} returned: {result}")
         return {"result": result}
