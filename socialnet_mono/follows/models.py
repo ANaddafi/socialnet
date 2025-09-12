@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class Follow(models.Model):
@@ -13,6 +14,13 @@ class Follow(models.Model):
             models.Index(fields=["user"]),
             models.Index(fields=["target"]),
         ]
+        constraints = [
+            models.CheckConstraint(check=~models.Q(user=models.F("target")), name="no_self_follow")
+        ]
+
+    def clean(self):
+        if self.user == self.target:
+            raise ValidationError("Users cannot follow themselves.")
 
     def __str__(self):
         return f"{self.user.username} → {self.target.username}"

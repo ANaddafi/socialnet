@@ -1,0 +1,565 @@
+{
+	"info": {
+		"_postman_id": "0f2ad464-8b49-4a8c-b3e6-cf2fce5a8a48",
+		"name": "socialnet_mono API Collection",
+		"description": "Complete API collection for socialnet_mono project.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "17953996"
+	},
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": "{{base_url}}/api/users/register/"
+					},
+					"response": []
+				},
+				{
+					"name": "Token Obtain Pair",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": "{{base_url}}/api/users/token/"
+					},
+					"response": []
+				},
+				{
+					"name": "Token Refresh",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh\": \"<refresh_token>\"\n}"
+						},
+						"url": "{{base_url}}/api/users/token/refresh/"
+					},
+					"response": []
+				},
+				{
+					"name": "Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": "{{base_url}}/api/users/profile/"
+					},
+					"response": []
+				},
+				{
+					"name": "Profile Edit",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"bio\": \"Updated bio\",\n  \"avatar\": \"<avatar_url>\"\n}"
+						},
+						"url": "{{base_url}}/api/users/profile/edit/"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Follows",
+			"item": [
+				{
+					"name": "Follow User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"target_id\": 2\n}"
+						},
+						"url": "{{base_url}}/api/follows/follow/"
+					},
+					"response": []
+				},
+				{
+					"name": "Unfollow User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/follows/unfollow/:target_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"follows",
+								"unfollow",
+								":target_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "target_id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Followers List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/follows/:user_id/followers/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"follows",
+								":user_id",
+								"followers",
+								""
+							],
+							"variable": [
+								{
+									"key": "user_id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Followings List",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/follows/:user_id/followings/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"follows",
+								":user_id",
+								"followings",
+								""
+							],
+							"variable": [
+								{
+									"key": "user_id"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "Create Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Hello world!\",\n  \"image\": \"<image_url>\"\n}"
+						},
+						"url": "{{base_url}}/api/posts/create/"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Post",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Updated post!\",\n  \"image\": \"<image_url>\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/posts/:pk/edit/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"posts",
+								":pk",
+								"edit",
+								""
+							],
+							"variable": [
+								{
+									"key": "pk"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Post",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/:pk/delete/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"posts",
+								":pk",
+								"delete",
+								""
+							],
+							"variable": [
+								{
+									"key": "pk"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Profile Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": "{{base_url}}/api/posts/profile/"
+					},
+					"response": []
+				},
+				{
+					"name": "Post Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/:pk/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"posts",
+								":pk",
+								""
+							],
+							"variable": [
+								{
+									"key": "pk"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Comment on Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"post_id\": 1,\n  \"content\": \"Nice post!\"\n}"
+						},
+						"url": "{{base_url}}/api/posts/comment/"
+					},
+					"response": []
+				},
+				{
+					"name": "Like Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"post_id\": 1\n}"
+						},
+						"url": "{{base_url}}/api/posts/like/"
+					},
+					"response": []
+				},
+				{
+					"name": "Unlike Post",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/unlike/:post_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"posts",
+								"unlike",
+								":post_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "post_id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Repost",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"post_id\": 1\n}"
+						},
+						"url": "{{base_url}}/api/posts/repost/"
+					},
+					"response": []
+				},
+				{
+					"name": "Bookmark Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"post_id\": 1\n}"
+						},
+						"url": "{{base_url}}/api/posts/bookmark/"
+					},
+					"response": []
+				},
+				{
+					"name": "Unbookmark Post",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/posts/unbookmark/:post_id/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"posts",
+								"unbookmark",
+								":post_id",
+								""
+							],
+							"variable": [
+								{
+									"key": "post_id"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bookmarked Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": "{{base_url}}/api/posts/bookmarked/"
+					},
+					"response": []
+				},
+				{
+					"name": "Feed",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer <access_token>"
+							}
+						],
+						"url": "{{base_url}}/api/posts/feed/"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Django Admin",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/admin/"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000"
+		}
+	]
+}

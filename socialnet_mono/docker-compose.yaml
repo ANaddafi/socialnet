@@ -30,7 +30,8 @@ services:
 
   backend:
     build: .
-    command: gunicorn socialnet.wsgi:application --bind 0.0.0.0:8000
+#    command: gunicorn socialnet_mono.wsgi:application --bind 0.0.0.0:8000
+    command: bash -c 'python manage.py collectstatic --no-input && python manage.py migrate && python manage.py runserver 0.0.0.0:8000'
     volumes:
       - .:/app
     environment:
@@ -51,6 +52,7 @@ services:
       - minio
     ports:
       - "8000:8000"
+    restart: always
 
 volumes:
   postgres_data:
