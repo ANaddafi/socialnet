@@ -12,6 +12,20 @@
 			"item": [
 				{
 					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Stores the user email in an environment variable\r",
+									"var jsonData = pm.response.json();\r",
+									"pm.environment.set(\"username\", jsonData.username);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -22,7 +36,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"username\": \"testuser4\",\n  \"email\": \"test4@example.com\",\n  \"password\": \"password123\",\n  \"password2\": \"password123\"\n}"
 						},
 						"url": "{{base_url}}/api/users/register/"
 					},
@@ -30,6 +44,21 @@
 				},
 				{
 					"name": "Token Obtain Pair",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"pm.environment.set(\"accessToken\", response.access);\r",
+									"pm.environment.set(\"refreshToken\", response.refresh);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -40,7 +69,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+							"raw": "{\n  \"username\": \"testuser4\",\n  \"password\": \"password123\"\n}"
 						},
 						"url": "{{base_url}}/api/users/token/"
 					},
@@ -48,6 +77,20 @@
 				},
 				{
 					"name": "Token Refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();\r",
+									"pm.environment.set(\"accessToken\", response.access);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -58,9 +101,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"refresh\": \"<refresh_token>\"\n}"
+							"raw": "{\n  \"refresh\": \"{{refreshToken}}\"\n}"
 						},
-						"url": "{{base_url}}/api/users/token/refresh/"
+						"url": "{{base_url}}/api/users/token/refresh/",
+						"description": "## POST Token Refresh\n\nThis endpoint is used to refresh the user authentication token. It requires a valid refresh token to issue a new access token.\n\n### Request\n\n- **URL:** `{{base_url}}/api/users/token/refresh/`\n    \n- **Method:** POST\n    \n- **Content-Type:** application/json\n    \n\n#### Request Body\n\nThe request body must be in JSON format and include the following parameter:\n\n- **refresh** (string): The refresh token used to obtain a new access token. This should be replaced with the `refreshToken` from the environment variables.\n    \n\n**Example:**\n\n``` json\n{\n  \"refresh\": \"{{refreshToken}}\"\n}\n\n ```\n\n### Response\n\n- **Status Code:** 401 Unauthorized\n    \n- **Content-Type:** application/json\n    \n- {\"detail\": \"\",\"code\": \"\"}\n    \n\nA 401 status indicates that the provided refresh token is invalid or expired. Ensure that the refresh token is valid before making this request."
 					},
 					"response": []
 				},
@@ -71,7 +115,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer {{accessToken}}"
 							}
 						],
 						"url": "{{base_url}}/api/users/profile/"
@@ -85,7 +129,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer {{accessToken}}"
 							},
 							{
 								"key": "Content-Type",
@@ -94,7 +138,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"bio\": \"Updated bio\",\n  \"avatar\": \"<avatar_url>\"\n}"
+							"raw": "{\n  \"bio\": \"Updated bio\"\n}"
 						},
 						"url": "{{base_url}}/api/users/profile/edit/"
 					},
@@ -112,18 +156,14 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer {{accessToken}}"
 							},
 							{
 								"key": "Content-Type",
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"target_id\": 2\n}"
-						},
-						"url": "{{base_url}}/api/follows/follow/"
+						"url": "{{base_url}}/api/follows/follow/2/"
 					},
 					"response": []
 				},
@@ -134,27 +174,10 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NzA0NjQxLCJpYXQiOjE3NTc3MDEwNDEsImp0aSI6IjZkNjU5ZjQ1NDdlYTQ5YzQ5MjA4NWRiNjIzMzJmMDExIiwidXNlcl9pZCI6IjIifQ.TSmnYLv2op5uMWQahPchu72ybFWIIlYAWzTqRSVANZE"
 							}
 						],
-						"url": {
-							"raw": "{{base_url}}/api/follows/unfollow/:target_id/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"follows",
-								"unfollow",
-								":target_id",
-								""
-							],
-							"variable": [
-								{
-									"key": "target_id"
-								}
-							]
-						}
+						"url": "{{base_url}}/api/follows/unfollow/1/"
 					},
 					"response": []
 				},
@@ -165,27 +188,10 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NzA0NjQxLCJpYXQiOjE3NTc3MDEwNDEsImp0aSI6IjZkNjU5ZjQ1NDdlYTQ5YzQ5MjA4NWRiNjIzMzJmMDExIiwidXNlcl9pZCI6IjIifQ.TSmnYLv2op5uMWQahPchu72ybFWIIlYAWzTqRSVANZE"
 							}
 						],
-						"url": {
-							"raw": "{{base_url}}/api/follows/:user_id/followers/",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"follows",
-								":user_id",
-								"followers",
-								""
-							],
-							"variable": [
-								{
-									"key": "user_id"
-								}
-							]
-						}
+						"url": "{{base_url}}/api/follows/2/followers/"
 					},
 					"response": []
 				},
@@ -232,7 +238,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer <access_token>"
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3NzA0NjQxLCJpYXQiOjE3NTc3MDEwNDEsImp0aSI6IjZkNjU5ZjQ1NDdlYTQ5YzQ5MjA4NWRiNjIzMzJmMDExIiwidXNlcl9pZCI6IjIifQ.TSmnYLv2op5uMWQahPchu72ybFWIIlYAWzTqRSVANZE"
 							},
 							{
 								"key": "Content-Type",
