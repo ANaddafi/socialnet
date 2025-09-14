@@ -23,7 +23,7 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
     readonly_fields = ('created_at', 'updated_at', 'likes_count', 'comments_count', 'reposts_count', 'shares_count')
     fieldsets = (
-        (None, {'fields': ('author', 'content', 'parent')}),
+        (None, {'fields': ('author', 'content', 'parent', 'image')}),
         ('Counts', {'fields': ('likes_count', 'comments_count', 'reposts_count', 'shares_count')}),
         ('Timestamps', {'fields': ('created_at', 'updated_at')}),
     )

@@ -104,17 +104,8 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = "/media/"
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-# S3/Minio Storage
-AWS_ACCESS_KEY_ID = os.environ.get("MINIO_ACCESS_KEY", "minioadmin")
-AWS_SECRET_ACCESS_KEY = os.environ.get("MINIO_SECRET_KEY", "minioadmin")
-AWS_STORAGE_BUCKET_NAME = os.environ.get("MINIO_BUCKET_NAME", "media")
-AWS_S3_ENDPOINT_URL = os.environ.get("MINIO_ENDPOINT", "http://localhost:9000")
-AWS_S3_REGION_NAME = None  # Minio doesn't require region
-AWS_S3_USE_SSL = False
-AWS_S3_VERIFY = False
-AWS_DEFAULT_ACL = None
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Rest Framework (JWT)
 REST_FRAMEWORK = {
