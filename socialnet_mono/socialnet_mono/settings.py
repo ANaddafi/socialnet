@@ -99,13 +99,40 @@ LOGGING = {
     },
 }
 
-# Static and Media files
+# Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
+# Media files
 MEDIA_URL = "/media/"
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Use custom storage backend that returns relative /media/ URLs so nginx can proxy
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "OPTIONS": {
+            "location": STATIC_ROOT,
+        },
+    },
+    "default": {
+        "BACKEND": "socialnet_mono.storage_backends.MinioMediaStorage",
+        "OPTIONS": {
+            "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+            "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            "bucket_name": os.environ.get("AWS_STORAGE_BUCKET_NAME"),
+            "endpoint_url": os.environ.get("AWS_S3_ENDPOINT_URL"),  # e.g. http://minio:9000
+            "region_name": os.environ.get("AWS_S3_REGION_NAME", "us-east-1"),
+            "addressing_style": os.environ.get("AWS_S3_ADDRESSING_STYLE", "path"),
+            "use_ssl": os.environ.get("AWS_S3_USE_SSL", "False").lower() == "true",
+            "verify": os.environ.get("AWS_S3_VERIFY", "False").lower() == "true",
+            "default_acl": "public-read",
+            "querystring_auth": False,  # no signed query parameters for public objects
+            "file_overwrite": False,    # disable overwrites, create unique names
+        },
+    },
+}
+
 
 # Rest Framework (JWT)
 REST_FRAMEWORK = {
