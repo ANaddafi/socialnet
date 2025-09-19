@@ -13,7 +13,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             'id', 'author', 'author_username', 'content', 'parent',
-            'created_at', 'updated_at', 'likes_count', 'comments_count', 'image',
+            'created_at', 'updated_at', 'likes_count', 'comments_count', 'image', 'video',
             'reposts_count', 'shares_count', 'is_liked', 'is_bookmarked', 'is_reposted', 'comments'
         ]
 
@@ -35,9 +35,21 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Post
-        fields = ['content', 'image', 'parent']
+        fields = ['content', 'image', 'video', 'parent']
+
+    def validate(self, attrs):
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
+        if attrs.get('image') and attrs.get('video'):
+            raise serializers.ValidationError("A post can have either an image or a video, not both.")
+        return super().validate(attrs)
 
 
 class LikeSerializer(serializers.ModelSerializer):

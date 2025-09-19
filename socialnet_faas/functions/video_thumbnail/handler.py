@@ -7,10 +7,12 @@ from urllib.parse import quote
 # TODO: S3 credentials taken from env vars
 s3 = boto3.client(
     's3',
-    aws_access_key_id="test",
-    aws_secret_access_key="test",
-    aws_session_token="us-east-1",
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="minioadmin",
+    endpoint_url="http://localhost:9000",
+    region_name="us-east-1",  # MinIO default region
 )
+
 def presigned_url(bucket, key, expires=600):
     return s3.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=expires)
 
