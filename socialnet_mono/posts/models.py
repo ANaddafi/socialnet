@@ -7,7 +7,7 @@ class Post(models.Model):
     content = models.TextField(max_length=1000)
     image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     video = models.FileField(upload_to='post_videos/', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     parent = models.ForeignKey('self', null=True, blank=True, related_name='comments', on_delete=models.CASCADE)
     likes_count = models.PositiveIntegerField(default=0)

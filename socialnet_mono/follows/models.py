@@ -13,6 +13,7 @@ class Follow(models.Model):
         indexes = [
             models.Index(fields=["user"]),
             models.Index(fields=["target"]),
+            models.Index(fields=["target", "created_at"]),
         ]
         constraints = [
             models.CheckConstraint(check=~models.Q(user=models.F("target")), name="no_self_follow")
