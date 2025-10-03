@@ -1,3 +1,4 @@
+import base64
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status
 from rest_framework.generics import get_object_or_404
@@ -150,3 +151,56 @@ class FeedView(generics.ListAPIView):
             author_id__in=list(following_ids) + [self.request.user.id],
             parent=None,  # swap out comments
         ).order_by('-created_at')
+
+
+class PostShareQRCodeView(generics.RetrieveAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        from faas.interface import FaasService
+
+        instance = self.get_object()
+        faas = FaasService()
+        post_url = request.build_absolute_uri(instance.get_absolute_url())
+        print("post_url", post_url)
+        response = faas.call_function(
+            faas.function_text_to_qrcode,
+            payload=post_url,
+            is_async=False,
+        )
+        qr_code_data: bytes = response.content
+        if qr_code_data:
+            return Response({'qr_code_base64': base64.b64encode(qr_code_data).decode('utf-8')})
+        return Response({'error': 'Failed to generate QR code'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PostTextToSpeechView(generics.UpdateAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        from faas.interface import FaasService
+
+        instance = self.get_object()
+        if instance.author != request.user:
+            return Response({'error': 'You can only convert your own posts to speech.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not instance.content:
+            return Response({'error': 'Post has no content to convert.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        faas = FaasService()
+        response = faas.call_function(
+            faas.function_text_to_speech,
+            payload={'text': instance.content},
+            is_async=False,
+        )
+        audio_data: bytes = response.content
+        if audio_data:
+            from django.core.files.base import ContentFile
+            instance.text_to_speech_file.save(f"tts_post_{instance.id}.mp3", ContentFile(audio_data))
+            instance.save(update_fields=['text_to_speech_file', 'updated_at'])
+            return Response({'status': 'Text-to-speech conversion successful.'})
+        return Response({'error': 'Failed to convert text to speech.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

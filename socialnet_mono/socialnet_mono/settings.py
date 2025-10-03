@@ -213,3 +213,4 @@ AUTH_PASSWORD_VALIDATORS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 FAAS_URL = os.environ.get("FAAS_URL", "http://192.168.1.11:8080")
+FAAS_CALLBACK_URL = os.environ.get("FAAS_CALLBACK_URL", "http://192.168.1.7/api/faas/callback/")

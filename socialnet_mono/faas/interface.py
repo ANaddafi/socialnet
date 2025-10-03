@@ -19,9 +19,9 @@ class FaasService:
     # function_image_encoding = 'image_encoding'
     # function_video_encoding = 'video_encoding'
 
-    function_sentiment_analysis = 'sentimentanalysis'  # action-based
+    function_sentiment_analysis = 'sentimentanalysis'  # always
     function_image_inception = 'inception'  # action-based
-    function_nsfw_recognition = 'openfaas-opennsfw'  # never
+    function_nsfw_recognition = 'openfaas-opennsfw'  # action-based
     function_text_to_speech = 'my-text-to-speech'  # action-based (or never - simple API call)
     function_text_to_qrcode = 'qrcode-go'  # action-based
 
@@ -43,7 +43,7 @@ class FaasService:
         callback_hook: str | None = None,
         metadata: dict | None = None,
         **request_kwargs
-    ) -> dict:
+    ) -> Response:
         """
             Call a FaaS function, either synchronously or asynchronously.
 
@@ -65,11 +65,11 @@ class FaasService:
         else:
             return self._call_sync_function(function_name, payload, headers=self.get_headers(), **request_kwargs)
     
-    def _call_sync_function(self, function_name: str, payload: dict, headers: dict, **request_kwargs) -> dict:
+    def _call_sync_function(self, function_name: str, payload: dict, headers: dict, **request_kwargs) -> Response:
         url = self.base_url + self.sync_function_path.format(function_name)
         response = requests.post(url, json=payload, headers=headers, **request_kwargs)
         response.raise_for_status()
-        return response.json()
+        return response
     
     def _call_async_function(
             self,
@@ -80,7 +80,11 @@ class FaasService:
             **request_kwargs,
     ) -> Response:
         url = self.base_url + self.async_funtcion_path.format(function_name)
-        response = requests.post(url, json=payload, headers=headers, **request_kwargs)
+        if isinstance(payload, dict):
+            request_kwargs['json'] = payload
+        else:
+            request_kwargs['data'] = payload
+        response = requests.post(url, headers=headers, **request_kwargs)
         response.raise_for_status()
         self._process_call_id(response, metadata)
         return response

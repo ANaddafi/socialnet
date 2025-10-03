@@ -13,8 +13,10 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             'id', 'author', 'author_username', 'content', 'parent',
-            'created_at', 'updated_at', 'likes_count', 'comments_count', 'image', 'video',
-            'reposts_count', 'shares_count', 'is_liked', 'is_bookmarked', 'is_reposted', 'comments'
+            'created_at', 'updated_at', 'likes_count', 'comments_count', 'image', 'video', 'thumbnail',
+            'reposts_count', 'shares_count', 'is_liked', 'is_bookmarked', 'is_reposted', 'comments',
+            'keywords', 'tags', 'topic', 'sentiment', 'is_nsfw', 'text_to_speech_file',
+            'is_toxic', 'is_offensive', 'is_blocked_by_system',
         ]
 
     def get_is_liked(self, obj):
@@ -38,15 +40,15 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['content', 'image', 'video', 'parent']
+        fields = ['content', 'image', 'video', 'parent', 'id']
+        extra_kwargs = {
+            'id': {'read_only': True},
+            'parent': {'required': False, 'allow_null': True},
+            'image': {'required': False, 'allow_null': True},
+            'video': {'required': False, 'allow_null': True},
+        }
 
     def validate(self, attrs):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> YAAAY")
         if attrs.get('image') and attrs.get('video'):
             raise serializers.ValidationError("A post can have either an image or a video, not both.")
         return super().validate(attrs)

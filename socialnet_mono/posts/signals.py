@@ -19,7 +19,7 @@ def call_faas_upon_post_creation(sender, instance, created, **kwargs):
 def _call_faas_for_post(instance: Post, created: bool):
     if created:
         faas = FaasService()
-        callback = "http://192.168.1.7/api/faas/callback/"
+        callback = settings.FAAS_CALLBACK_URL
         
         faas.call_function(
             faas.function_categorize_post_text,

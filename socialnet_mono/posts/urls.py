@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     PostCreateView, PostEditView, PostDeleteView, ProfilePostsView, PostDetailView,
     CommentCreateView, LikePostView, UnlikePostView, RepostView, MyPostsView,
-    BookmarkView, UnbookmarkView, BookmarkedPostsView, FeedView,
+    BookmarkView, UnbookmarkView, BookmarkedPostsView, FeedView, PostShareQRCodeView,
+    PostTextToSpeechView,
 )
 
 
@@ -10,6 +11,8 @@ urlpatterns = [
     path('create/', PostCreateView.as_view(), name='post_create'),
     path('<int:pk>/edit/', PostEditView.as_view(), name='post_edit'),
     path('<int:pk>/delete/', PostDeleteView.as_view(), name='post_delete'),
+    path('<int:pk>/qrcode/', PostShareQRCodeView.as_view(), name='post-qrcode'),
+    path('<int:pk>/tts/', PostTextToSpeechView.as_view(), name='post-tts'),
     path('my/', MyPostsView.as_view(), name='my_posts'),
     path('profile/<int:pk>/', ProfilePostsView.as_view(), name='profile_posts'),
     path('<int:pk>/', PostDetailView.as_view(), name='post_detail'),

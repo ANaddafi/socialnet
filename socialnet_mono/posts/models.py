@@ -14,6 +14,10 @@ class Post(models.Model):
     is_offensive = models.BooleanField(default=False)
     is_blocked_by_system = models.BooleanField(default=False)
 
+    @property
+    def is_toxic(self):
+        return self.is_toxit
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,9 +32,16 @@ class Post(models.Model):
     tags = models.JSONField(default=list, blank=True)
     topic = models.CharField(max_length=100, null=True, blank=True)
     sentiment = models.CharField(max_length=20, null=True, blank=True)
+    is_nsfw = models.BooleanField(default=False)
+
+    text_to_speech_file = models.FileField(upload_to='text_to_speech/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.author.username}: {self.content[:30]}"
+
+    def get_absolute_url(self):
+        from django.shortcuts import reverse
+        return reverse("post_detail", kwargs={"pk": self.pk})
 
     class Meta:
         constraints = [

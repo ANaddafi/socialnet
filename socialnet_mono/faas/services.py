@@ -15,13 +15,16 @@ def process_callback_data(request):
         print("Function execution failed or did not complete successfully:", error)
         return
     
-    try:
-        data = request.body.decode('utf-8')
-        data = json.loads(data) if data else {}
-        print("Callback Data:", data)
-    except Exception as e:
-        print("Error processing callback data:", str(e))
-        return
+    if function_name != FaasService.function_text_to_speech:
+        try:
+            data = request.body.decode('utf-8')
+            data = json.loads(data) if data else {}
+            print("Callback Data:", str(data)[:100])
+        except Exception as e:
+            print("Error processing callback data:", str(e))
+            return
+    else:
+        data = request.body
     
     match function_name:
         case FaasService.function_generate_report:
@@ -190,12 +193,65 @@ def process_callback_data(request):
             
         
         case FaasService.function_nsfw_recognition:
-            # Not used yet
-            pass
+            # { "sfw_score": float, "nsfw_score": float }
+
+            post_id = get_metadata_from_cache(call_id)
+            if post_id and isinstance(post_id, dict): post_id = post_id.get("unique_id", post_id)
+            scores = data
+            print(f"Post ID: {post_id}, nsfw scores: {scores}")
+
+            if not post_id:
+                print("No post_id found in cache for call-id", call_id)
+                return
+
+            if not scores:
+                print("Coudln't find any scores in data", data)
+                return
+
+            if scores['nsfw_score'] > 0.7:
+                is_nsfw = True
+            else:
+                is_nsfw = False
+
+            from posts.models import Post
+            try:
+                post = Post.objects.get(id=post_id)
+                post.is_nsfw = is_nsfw
+                post.save(update_fields=['is_nsfw', 'updated_at'])
+                print(f"Post {post_id} is_nsfw updated successfully to {is_nsfw}.")
+            except Post.DoesNotExist:
+                print(f"Post with ID {post_id} does not exist.")
+            except Exception as e:
+                print(f"Error updating Post {post_id}: {str(e)}")
         
         case FaasService.function_text_to_speech:
-            # No async call
-            pass
+            # Bytes of an audio file (e.g., MP3 or WAV)
+            
+            post_id = get_metadata_from_cache(call_id)
+            if post_id and isinstance(post_id, dict): post_id = post_id.get("unique_id", post_id)
+            audio_bytes = data
+            print(f"Post ID: {post_id}, body bytes: {len(data)}")
+
+            if not post_id:
+                print("No post_id found in cache for call-id", call_id)
+                return
+            
+            if not audio_bytes:
+                print("No audio bytes found in callback data")
+                return
+            
+            from posts.models import Post
+            from django.core.files.base import ContentFile
+            try:
+                post = Post.objects.get(id=post_id)
+                audio_file = ContentFile(audio_bytes, name=f"tts_post_{post_id}.mp3")
+                post.text_to_speech_file.save(f"tts_post_{post_id}.mp3", audio_file)
+                post.save(update_fields=['text_to_speech_file', 'updated_at'])
+                print(f"Post {post_id} text_to_speech_file updated successfully.")
+            except Post.DoesNotExist:
+                print(f"Post with ID {post_id} does not exist.")
+            except Exception as e:
+                print(f"Error updating Post {post_id}: {str(e)}")
         
         case FaasService.function_text_to_qrcode:
             # No async call
