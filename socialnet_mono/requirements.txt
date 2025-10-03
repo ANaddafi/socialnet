@@ -9,3 +9,4 @@ gunicorn>=21.2
 Pillow>=10.3
 boto3>=1.34
 django-storages>=1.14
+requests

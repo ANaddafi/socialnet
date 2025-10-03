@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    container_name: socialnet-gres
+    environment:
+      POSTGRES_DB: socialnet
+      POSTGRES_USER: socialuser
+      POSTGRES_PASSWORD: socialpass
+    volumes:
+      - /postgres/socialnet:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    container_name: socialnet-redis
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  minio:
+    container_name: socialnet-minio
+    image: minio/minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - /minio/socialnet:/data
+    
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      sh -c "
+        until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done &&
+        mc mb -p local/media || true &&
+        mc anonymous set public local/media
+      "
+    restart: "on-failure"
+
+  nginx:
+    image: nginx:1.27
+    depends_on:
+      # - backend
+      - minio
+    ports:
+      - "80:80"
+    volumes:
+      # - .:/app:ro
+      - ./socialnet_mono/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+

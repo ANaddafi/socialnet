@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/posts/', include('posts.urls')),
     path('api/follows/', include('follows.urls')),
+    path('api/faas/', include('faas.urls')),
 ]
 
 # In development, serve static

@@ -27,8 +27,9 @@ INSTALLED_APPS = [
     # Your apps
     "users",
     "posts",
-    'follows',
-    'notifications',
+    "follows",
+    "notifications",
+    "faas",
 ]
 
 MIDDLEWARE = [
@@ -210,3 +211,5 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+FAAS_URL = os.environ.get("FAAS_URL", "http://192.168.1.11:8080")

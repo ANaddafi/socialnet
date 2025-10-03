@@ -21,10 +21,15 @@ class PostAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'content', 'created_at', 'likes_count', 'comments_count', 'reposts_count', 'shares_count')
     search_fields = ('author__username', 'content')
     list_filter = ('created_at',)
-    readonly_fields = ('created_at', 'updated_at', 'likes_count', 'comments_count', 'reposts_count', 'shares_count')
+    readonly_fields = (
+        'created_at', 'updated_at', 'likes_count', 'comments_count', 'reposts_count', 'shares_count',
+        'thumbnail', 
+    )
     fieldsets = (
-        (None, {'fields': ('author', 'content', 'parent', 'image', 'video')}),
+        (None, {'fields': ('author', 'content', 'parent', 'image', 'video', 'thumbnail')}),
         ('Counts', {'fields': ('likes_count', 'comments_count', 'reposts_count', 'shares_count')}),
+        ('Status', {'fields': ('is_toxit', 'is_offensive', 'is_blocked_by_system')}),
+        ('Metadata', {'fields': ('keywords', 'tags', 'topic', 'sentiment')}),
         ('Timestamps', {'fields': ('created_at', 'updated_at')}),
     )
     inlines = [LikeInline, RepostInline, BookmarkInline]
