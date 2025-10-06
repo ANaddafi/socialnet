@@ -21,3 +21,5 @@ loglevel = "info"
 
 # Temp to avoid Docker overlayfs issues
 worker_tmp_dir = "/dev/shm"
+
+print(f"Starting Gunicorn with {workers} workers and {threads} threads each")
