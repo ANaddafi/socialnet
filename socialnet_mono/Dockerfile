@@ -16,5 +16,8 @@ RUN pip install --upgrade pip \
 # Copy only what you need for runtime
 COPY . .
 
+COPY deployment/entrypoint.sh entrypoint.sh
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8000
-CMD ["gunicorn", "socialnet_mono.wsgi:application", "-c", "gunicorn.conf.py"]
+CMD ["bash", "entrypoint.sh"]

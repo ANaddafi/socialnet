@@ -25,8 +25,9 @@ class FaasService:
     function_text_to_speech = 'my-text-to-speech'  # action-based (or never - simple API call)
     function_text_to_qrcode = 'qrcode-go'  # action-based
 
-    def __init__(self, base_url: str = None):
+    def __init__(self, base_url: str = None, fake_async: bool = True):
         self.base_url = base_url or settings.FAAS_URL
+        self.fake_async = fake_async
     
     def get_headers(self, extra_headers: dict | None = None) -> dict:
         headers = {
@@ -56,20 +57,42 @@ class FaasService:
 
             :return: Response from the FaaS function as a dictionary
         """
+
+        headers = self.get_headers()
         if is_async:
+            
+            if self.fake_async:
+                return self._call_fake_async_function(function_name, payload, headers=headers, metadata=metadata, **request_kwargs)
+            
             if callback_hook:
                 headers = self.get_headers({'X-Callback-Url': callback_hook})
-            else:
-                headers = self.get_headers()
+            
             return self._call_async_function(function_name, payload, headers=headers, metadata=metadata, **request_kwargs)
+
         else:
-            return self._call_sync_function(function_name, payload, headers=self.get_headers(), **request_kwargs)
+            return self._call_sync_function(function_name, payload, headers=headers, **request_kwargs)
     
     def _call_sync_function(self, function_name: str, payload: dict, headers: dict, **request_kwargs) -> Response:
         url = self.base_url + self.sync_function_path.format(function_name)
-        response = requests.post(url, json=payload, headers=headers, **request_kwargs)
+        if isinstance(payload, dict):
+            request_kwargs['json'] = payload
+        else:
+            request_kwargs['data'] = payload
+        response = requests.post(url, headers=headers, **request_kwargs)
+        response = requests.post(url, headers=headers, **request_kwargs)
         response.raise_for_status()
         return response
+    
+    def _call_fake_async_function(self, function_name: str, payload: dict, headers: dict, metadata: dict | None = None, **request_kwargs) -> Response:
+        resp = self._call_sync_function(function_name, payload, headers=headers, **request_kwargs)
+        self._process_call_id(resp, metadata)
+
+        print("FAKE ASYNC CALL - handling callback directly")
+
+        from faas.services import handle_faas_callback
+        handle_faas_callback(function_name, resp.headers.get("X-Call-Id", None), resp.content)
+
+        return resp
     
     def _call_async_function(
             self,

@@ -3,6 +3,8 @@ from faas.interface import FaasService, get_metadata_from_cache
 
 
 def process_callback_data(request):
+    print("Received callback request with headers:", request.headers)
+    
     function_name = request.headers.get('X-Function-Name', 'Unknown')
     print(f"Processing callback from function: {function_name}")
     status = request.headers.get('X-Function-Status', 'Unknown')
@@ -14,18 +16,24 @@ def process_callback_data(request):
         error = request.body.decode('utf-8') or 'No error message provided'
         print("Function execution failed or did not complete successfully:", error)
         return
-    
+
+    handle_faas_callback(function_name, call_id, request.body)
+
+
+def handle_faas_callback(function_name, call_id, res_data):
+    print("Handling callback for function:", function_name, "with call_id:", call_id)
+
     if function_name != FaasService.function_text_to_speech:
         try:
-            data = request.body.decode('utf-8')
+            data = res_data.decode('utf-8')
             data = json.loads(data) if data else {}
             print("Callback Data:", str(data)[:100])
         except Exception as e:
             print("Error processing callback data:", str(e))
             return
     else:
-        data = request.body
-    
+        data = res_data
+
     match function_name:
         case FaasService.function_generate_report:
             # No async call

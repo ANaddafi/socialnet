@@ -1,0 +1,5 @@
+.git/
+static/
+staticfiles/
+.dockerignore
+postmant_collection.json

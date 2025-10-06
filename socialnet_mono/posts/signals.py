@@ -11,7 +11,7 @@ FAAS_URL = settings.FAAS_URL
 
 @receiver(post_save, sender=Post)
 def call_faas_upon_post_creation(sender, instance, created, **kwargs):
-    print("Post created signal received. Created:", created, "Post ID:", instance.id, vars(instance), kwargs)
+    print("Post created signal received. Created:", created, "Post ID:", instance.id)
     # Call the FAAS functions only after the transaction is committed, to ensure the Post is saved
     transaction.on_commit(lambda: _call_faas_for_post(instance, created))
 
