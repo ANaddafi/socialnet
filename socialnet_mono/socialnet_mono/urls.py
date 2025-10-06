@@ -19,12 +19,21 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+def healthz(request):
+    """
+    Simple health check view.
+    Returns a 200 OK response to indicate the service is running.
+    """
+    from django.http import HttpResponse
+    return HttpResponse("OK", status=200)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/posts/', include('posts.urls')),
     path('api/follows/', include('follows.urls')),
     path('api/faas/', include('faas.urls')),
+    path('healthz/', healthz, name='healthz'),
 ]
 
 # In development, serve static

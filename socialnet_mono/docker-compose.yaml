@@ -6,15 +6,29 @@ services:
       POSTGRES_DB: socialnet
       POSTGRES_USER: socialuser
       POSTGRES_PASSWORD: socialpass
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socialuser -d socialnet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    cpus: "2.0"
+    mem_limit: "2g"
+    pids_limit: 512
 
   redis:
     image: redis:7
-    ports:
-      - "6379:6379"
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    cpus: "0.5"
+    mem_limit: "512m"
+    pids_limit: 256
 
   minio:
     image: minio/minio
@@ -25,13 +39,21 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - minio_data:/data
-    
+    # volumes:
+    #   - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    cpus: "1.0"
+    mem_limit: "512m"
+
   minio-init:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       sh -c "
         until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done &&
@@ -42,52 +64,117 @@ services:
 
   backend:
     build: .
-    # command: gunicorn socialnet_mono.wsgi:application --bind 0.0.0.0:8000
-    # Switch to gunicorn in production; keep runserver for dev convenience
-    command: bash -c 'python manage.py collectstatic --no-input && python manage.py migrate && python manage.py runserver 0.0.0.0:8000'
-    volumes:
-      - .:/app
+    # For prod-ish start: collectstatic & migrate once per container, then start gunicorn
+    command: >
+      bash -lc "
+        python manage.py collectstatic --no-input &&
+        python manage.py migrate --no-input &&
+        gunicorn socialnet_mono.wsgi:application -c deployment/gunicorn.conf.py
+      "
     environment:
-      - DEBUG=1
-      - DJANGO_ALLOWED_HOSTS=*
-      - POSTGRES_DB=socialnet
-      - POSTGRES_USER=socialuser
-      - POSTGRES_PASSWORD=socialpass
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - REDIS_URL=redis://redis:6379/0
-      # S3/MinIO storage configuration
-      - AWS_ACCESS_KEY_ID=minioadmin
-      - AWS_SECRET_ACCESS_KEY=minioadmin
-      - AWS_STORAGE_BUCKET_NAME=media
-      - AWS_S3_ENDPOINT_URL=http://minio:9000
-      - AWS_S3_REGION_NAME=us-east-1
-      - AWS_S3_ADDRESSING_STYLE=path
-      - AWS_S3_USE_SSL=False
-      - AWS_S3_VERIFY=False
+      DJANGO_ALLOWED_HOSTS: "*"
+      DEBUG: "0"                       # turn off in prod
+      POSTGRES_DB: socialnet
+      POSTGRES_USER: socialuser
+      POSTGRES_PASSWORD: socialpass
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_STORAGE_BUCKET_NAME: media
+      AWS_S3_ENDPOINT_URL: http://minio:9000
+      AWS_S3_REGION_NAME: us-east-1
+      AWS_S3_ADDRESSING_STYLE: path
+      AWS_S3_USE_SSL: "False"
+      AWS_S3_VERIFY: "False"
+      # Optional: enable Django persistent DB connections
+      DJANGO_DB_CONN_MAX_AGE: "60"
     depends_on:
-      - db
-      - redis
-      - minio
-      - minio-init
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      minio-init:
+        condition: service_started
     expose:
       - "8000"
-#    ports:
-#      - "8000:8000"
     restart: always
+    volumes:
+      - ./static:/app/static
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    cpus: "2.0"
+    mem_limit: "1.5g"
+    pids_limit: 512
+    shm_size: "256m"
 
   nginx:
     image: nginx:1.27
     depends_on:
-      - backend
-      - minio
+      backend:
+        condition: service_healthy
     ports:
       - "80:80"
     volumes:
       - .:/app:ro
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deployment/nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/nginx-health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    cpus: "1.0"
+    mem_limit: "512m"
+  
+  # nginx-exporter:
+  #   image: nginxinc/nginx-prometheus-exporter:0.11.0
+  #   command: ["-nginx.scrape-uri=http://nginx/nginx_status"]
+  #   depends_on: [nginx]
+  #   ports: ["9113:9113"]   # Prometheus target
+  #   restart: unless-stopped
+
+  nginxlog_exporter:
+    image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.11.0
+    command:
+      - -config-file=/cfg/nginxlog.yml
+    volumes:
+      - nginx_logs:/var/log/nginx:ro
+      - ./deployment/nginxlog.yml:/cfg/nginxlog.yml:ro
+    ports: ["4040:4040"]   # Prometheus target
+    restart: unless-stopped
+  
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    restart: unless-stopped
+    pid: host
+    network_mode: host
+    ports:
+      - "9100:9100"  # Metrics at http://localhost:9100/metrics
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro,rslave
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "8088:8080"   # UI at http://localhost:8088
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
 
 volumes:
-  postgres_data:
-  minio_data:
+  nginx_logs:
+#   postgres_data:
+#   minio_data:
